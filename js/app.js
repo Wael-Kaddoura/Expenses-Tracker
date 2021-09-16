@@ -32,12 +32,12 @@ function updateCategoryDropdown(categories) {
     $("#expense_category").append(option);
   }
 
-  $("#edit_expense_category").empty();
-  $("#edit_expense_category").append(choose_option);
+  $(".edit_expense_category").empty();
+  $(".edit_expense_category").append(choose_option);
   for (const category in categories) {
     let option =
       "<option value=" + category + ">" + categories[category] + "</option>";
-    $("#edit_expense_category").append(option);
+    $(".edit_expense_category").append(option);
   }
 }
 
@@ -113,6 +113,11 @@ async function editExpense(expense_id, amount, date, category_id) {
         editExpense(expense_id, new_amount, new_date, new_category_id);
       });
     });
+
+    await fetchCurrentCategories().then((results) => {
+      let categories = results;
+      updateCategoryDropdown(categories);
+    });
   } catch (error) {
     console.log(error);
   }
@@ -136,7 +141,7 @@ function updateExpensesList(expenses) {
             <div class="mb-3">
               <label for="expense_category" class="col-form-label">Category:</label>
               <div class="input-group mb-3">
-                <select name="edit_expense_category" class="form-select" id="edit_expense_category_${expense}">
+                <select name="edit_expense_category" class="form-select edit_expense_category" id="edit_expense_category_${expense}">
                   <option selected value = "${expense}">${expenses[expense]["category"]}</option>
                 </select>
               </div>
