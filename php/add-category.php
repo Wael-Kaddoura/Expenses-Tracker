@@ -4,7 +4,7 @@ include "connection.php";
 session_start();
 
 $user_id = $_SESSION["user_id"];
-$new_category = $_POST["newcategory"];
+$new_category = $_POST["new_category"];
 
 $sql="INSERT INTO `categories`(`name`, `user_id`) VALUES (?, ?)";
 $stmt = $connection->prepare($sql);

@@ -1,5 +1,3 @@
-const delete_button = `<button class="btn btn-danger delete_expense">Delete</button>`;
-
 async function fetchCurrentCategories() {
   const response = await fetch(
     "http://localhost/expensestracker/php/get-categories.php"
@@ -17,7 +15,7 @@ async function addNewCategory(category) {
     result = await $.ajax({
       type: "POST",
       url: "http://localhost/expensestracker/php/add-category.php",
-      data: { newcategory: category },
+      data: { new_category: category },
     });
   } catch (error) {
     console.log(error);
@@ -52,6 +50,7 @@ async function fetchCurrentExpenses() {
     throw new Error(message);
   }
   const data = await response.json();
+  console.log(data);
   return data;
 }
 
@@ -93,8 +92,27 @@ async function editExpense(expense_id, amount, date, category_id) {
       },
     });
 
-    await fetchCurrentExpenses();
-    await updateExpensesList();
+    await fetchCurrentExpenses().then((results) => {
+      let expenses = results;
+      updateExpensesList(expenses);
+      buildPieChart(expenses);
+
+      $(".delete_expense").click(function (e) {
+        e.preventDefault();
+        let expense_id = $(this).val();
+        deleteExpense(expense_id);
+      });
+
+      $(".edit_expense").click(function (e) {
+        e.preventDefault();
+        let expense_id = $(this).val();
+        let new_amount = $(`#edit_expense_amount_${expense_id}`).val();
+        let new_date = $(`#edit_expense_date_${expense_id}`).val();
+        let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
+
+        editExpense(expense_id, new_amount, new_date, new_category_id);
+      });
+    });
   } catch (error) {
     console.log(error);
   }
@@ -137,7 +155,8 @@ function updateExpensesList(expenses) {
         </div>
 		  </div>`;
 
-    console.log(edit_button);
+    let delete_button = `<button class="btn btn-outline-danger delete_expense" value = "${expense}">Delete</button>`;
+
     let row =
       "<tr id = 'expense_" +
       expense +
@@ -150,9 +169,7 @@ function updateExpensesList(expenses) {
       "</td><td>" +
       edit_button +
       "</td><td>" +
-      '<button class="btn btn-outline-danger delete_expense" value = "' +
-      expense +
-      '">Delete</button>' +
+      delete_button +
       "</td></tr>";
 
     $("#expenses_table").append(row);
@@ -165,31 +182,57 @@ function updateExpensesList(expenses) {
   });
 }
 
+function buildPieChart(expenses) {
+  $("#pie").empty();
+  // set the data
+  let data = [];
+
+  for (const expense in expenses) {
+    let category = expenses[expense]["category"];
+    let amount = expenses[expense]["amount"];
+    data.push({ x: category, value: amount });
+  }
+
+  // create the chart
+  var chart = anychart.pie();
+
+  // set the chart title
+  chart.title("Total Expenses Grouped by Category");
+
+  // add the data
+  chart.data(data);
+
+  // display the chart in the container
+  chart.container("pie");
+  chart.draw();
+}
+
 $(document).ready(async function () {
   await fetchCurrentExpenses().then((results) => {
     let expenses = results;
     updateExpensesList(expenses);
+    buildPieChart(expenses);
+
+    $(".delete_expense").click(function (e) {
+      e.preventDefault();
+      let expense_id = $(this).val();
+      deleteExpense(expense_id);
+    });
+
+    $(".edit_expense").click(function (e) {
+      e.preventDefault();
+      let expense_id = $(this).val();
+      let new_amount = $(`#edit_expense_amount_${expense_id}`).val();
+      let new_date = $(`#edit_expense_date_${expense_id}`).val();
+      let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
+
+      editExpense(expense_id, new_amount, new_date, new_category_id);
+    });
   });
 
   await fetchCurrentCategories().then((results) => {
     let categories = results;
     updateCategoryDropdown(categories);
-  });
-
-  $(".delete_expense").click(function (e) {
-    e.preventDefault();
-    let expense_id = $(this).val();
-    deleteExpense(expense_id);
-  });
-
-  $(".edit_expense").click(function (e) {
-    e.preventDefault();
-    let expense_id = $(this).val();
-    let new_amount = $(`#edit_expense_amount_${expense_id}`).val();
-    let new_date = $(`#edit_expense_date_${expense_id}`).val();
-    let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
-
-    editExpense(new_amount, new_date, new_category_id, expense_id);
   });
 });
 
@@ -218,5 +261,6 @@ $("#add_expense").click(async function (e) {
   fetchCurrentExpenses().then((results) => {
     let expenses = results;
     updateExpensesList(expenses);
+    buildPieChart(expenses);
   });
 });
