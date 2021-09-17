@@ -3,12 +3,13 @@ include "connection.php";
 
 session_start();
 
-$expense_id = $_POST["expense_id"];
+$deleted_expense = $_POST["expense"];
+$deleted_expense = json_decode($deleted_expense, true);
 
-//getting all the categories for the current user from the DB
+$deleted_expense_id = $deleted_expense["expense_id"];
+
 $sql="DELETE FROM `expenses` WHERE id = ?";
 $stmt = $connection->prepare($sql);
-$stmt->bind_param("s",$expense_id);
+$stmt->bind_param("s",$deleted_expense_id);
 $stmt->execute();
-
 ?>

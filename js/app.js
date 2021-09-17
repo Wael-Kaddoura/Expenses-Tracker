@@ -12,10 +12,11 @@ async function fetchCurrentCategories() {
 
 async function addNewCategory(category) {
   try {
+    let json_object = JSON.stringify({ new_category_name: category });
     result = await $.ajax({
       type: "POST",
       url: "http://localhost/expensestracker/php/add-category.php",
-      data: { new_category: category },
+      data: { new_category: json_object },
     });
   } catch (error) {
     console.log(error);
@@ -24,8 +25,6 @@ async function addNewCategory(category) {
 
 function updateCategoryDropdown(categories) {
   $("#expense_category").empty();
-  let choose_option = "<option selected value = 0>Choose...</option>";
-  $("#expense_category").append(choose_option);
   for (const category in categories) {
     let option =
       "<option value=" + category + ">" + categories[category] + "</option>";
@@ -33,7 +32,6 @@ function updateCategoryDropdown(categories) {
   }
 
   $(".edit_expense_category").empty();
-  $(".edit_expense_category").append(choose_option);
   for (const category in categories) {
     let option =
       "<option value=" + category + ">" + categories[category] + "</option>";
@@ -67,10 +65,15 @@ async function fetchGroupedExpenses() {
 
 async function addNewExpense(amount, date, category) {
   try {
+    let json_object = JSON.stringify({
+      amount: amount,
+      date: date,
+      category: category,
+    });
     result = await $.ajax({
       type: "POST",
       url: "http://localhost/expensestracker/php/add-expense.php",
-      data: { amount: amount, date: date, category: category },
+      data: { new_expense_data: json_object },
     });
   } catch (error) {
     console.log(error);
@@ -79,10 +82,11 @@ async function addNewExpense(amount, date, category) {
 
 async function deleteExpense(expense_id) {
   try {
+    let json_object = JSON.stringify({ expense_id: expense_id });
     result = await $.ajax({
       type: "POST",
       url: "http://localhost/expensestracker/php/delete-expense.php",
-      data: { expense_id: expense_id },
+      data: { expense: json_object },
     });
     $("#expense_" + expense_id).remove();
     await fetchGroupedExpenses().then((results) => {
@@ -96,15 +100,17 @@ async function deleteExpense(expense_id) {
 
 async function editExpense(expense_id, amount, date, category_id) {
   try {
+    let json_object = JSON.stringify({
+      new_amount: amount,
+      new_date: date,
+      new_category_id: category_id,
+      expense_id: expense_id,
+    });
+
     result = await $.ajax({
       type: "POST",
       url: "http://localhost/expensestracker/php/edit-expense.php",
-      data: {
-        new_amount: amount,
-        new_date: date,
-        new_category_id: category_id,
-        expense_id: expense_id,
-      },
+      data: { edited_expense_data: json_object },
     });
 
     await fetchCurrentExpenses().then(async (results) => {
@@ -114,22 +120,6 @@ async function editExpense(expense_id, amount, date, category_id) {
       await fetchGroupedExpenses().then((results) => {
         let grouped_expenses = results;
         buildPieChart(grouped_expenses);
-      });
-
-      $(".delete_expense").click(function (e) {
-        e.preventDefault();
-        let expense_id = $(this).val();
-        deleteExpense(expense_id);
-      });
-
-      $(".edit_expense").click(function (e) {
-        e.preventDefault();
-        let expense_id = $(this).val();
-        let new_amount = $(`#edit_expense_amount_${expense_id}`).val();
-        let new_date = $(`#edit_expense_date_${expense_id}`).val();
-        let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
-
-        editExpense(expense_id, new_amount, new_date, new_category_id);
       });
     });
 
@@ -161,7 +151,6 @@ function updateExpensesList(expenses) {
               <label for="expense_category" class="col-form-label">Category:</label>
               <div class="input-group mb-3">
                 <select name="edit_expense_category" class="form-select edit_expense_category" id="edit_expense_category_${expense}">
-                  <option selected value = "${expense}">${expenses[expense]["category"]}</option>
                 </select>
               </div>
             </div>
@@ -203,6 +192,16 @@ function updateExpensesList(expenses) {
     e.preventDefault();
     let expense_id = $(this).val();
     deleteExpense(expense_id);
+  });
+
+  $(".edit_expense").click(function (e) {
+    e.preventDefault();
+    let expense_id = $(this).val();
+    let new_amount = $(`#edit_expense_amount_${expense_id}`).val();
+    let new_date = $(`#edit_expense_date_${expense_id}`).val();
+    let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
+
+    editExpense(expense_id, new_amount, new_date, new_category_id);
   });
 }
 
@@ -262,22 +261,6 @@ async function pageLoad() {
         await fetchGroupedExpenses().then((results) => {
           let grouped_expenses = results;
           buildPieChart(grouped_expenses);
-        });
-
-        $(".delete_expense").click(function (e) {
-          e.preventDefault();
-          let expense_id = $(this).val();
-          deleteExpense(expense_id);
-        });
-
-        $(".edit_expense").click(function (e) {
-          e.preventDefault();
-          let expense_id = $(this).val();
-          let new_amount = $(`#edit_expense_amount_${expense_id}`).val();
-          let new_date = $(`#edit_expense_date_${expense_id}`).val();
-          let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
-
-          editExpense(expense_id, new_amount, new_date, new_category_id);
         });
       });
 
