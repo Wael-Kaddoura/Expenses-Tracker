@@ -12,8 +12,7 @@ if (!isset($_SESSION["logedin"]) || !$_SESSION["logedin"]) {
 }elseif ($_SESSION["logedin"]) {
     $user_id = $_SESSION["user_id"];
 
-    //getting the users data from the database
-    $sql1="Select * from users where id=?";
+    $sql1="SELECT * FROM users WHERE id=?";
     $stmt1 = $connection->prepare($sql1);
     $stmt1->bind_param("s",$user_id);
     $stmt1->execute();
@@ -22,7 +21,6 @@ if (!isset($_SESSION["logedin"]) || !$_SESSION["logedin"]) {
 
     $page_stats["is_logedin"] = TRUE;
     $page_stats["username"] = $row1["first_name"]." ".$row1["last_name"];
-
 }
 
 $json = json_encode($page_stats);

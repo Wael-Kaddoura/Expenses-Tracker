@@ -1,4 +1,4 @@
-async function fetchCurrentCategories() {
+async function getCategoriesAPI() {
   const response = await fetch(
     "http://localhost/Wael_Kaddoura_ExpensesTracker/php/get-categories.php"
   );
@@ -10,9 +10,9 @@ async function fetchCurrentCategories() {
   return data;
 }
 
-async function addNewCategory(category) {
+async function addCategoryAPI(category_name) {
   try {
-    let json_object = JSON.stringify({ new_category_name: category });
+    let json_object = JSON.stringify({ category_name: category_name });
     result = await $.ajax({
       type: "POST",
       url: "http://localhost/Wael_Kaddoura_ExpensesTracker/php/add-category.php",
@@ -25,21 +25,19 @@ async function addNewCategory(category) {
 
 function updateCategoryDropdown(categories) {
   $("#expense_category").empty();
-  for (const category in categories) {
-    let option =
-      "<option value=" + category + ">" + categories[category] + "</option>";
-    $("#expense_category").append(option);
+  for (const category_id in categories) {
+    let category_option = `<option value= ${category_id}> ${categories[category_id]} </option>`;
+    $("#expense_category").append(category_option);
   }
 
   $(".edit_expense_category").empty();
-  for (const category in categories) {
-    let option =
-      "<option value=" + category + ">" + categories[category] + "</option>";
-    $(".edit_expense_category").append(option);
+  for (const category_id in categories) {
+    let category_option = `<option value= ${category_id}> ${categories[category_id]} </option>`;
+    $(".edit_expense_category").append(category_option);
   }
 }
 
-async function fetchCurrentExpenses() {
+async function getExpensesAPI() {
   const response = await fetch(
     "http://localhost/Wael_Kaddoura_ExpensesTracker/php/get-expenses.php"
   );
@@ -51,7 +49,7 @@ async function fetchCurrentExpenses() {
   return data;
 }
 
-async function fetchGroupedExpenses() {
+async function getGroupedExpensesAPI() {
   const response = await fetch(
     "http://localhost/Wael_Kaddoura_ExpensesTracker/php/get-expenses-grouped.php"
   );
@@ -63,33 +61,92 @@ async function fetchGroupedExpenses() {
   return data;
 }
 
-async function addNewExpense(amount, date, category) {
+async function addExpenseAPI(amount, date, category_id) {
   try {
     let json_object = JSON.stringify({
       amount: amount,
       date: date,
-      category: category,
+      category_id: category_id,
     });
     result = await $.ajax({
       type: "POST",
       url: "http://localhost/Wael_Kaddoura_ExpensesTracker/php/add-expense.php",
       data: { new_expense_data: json_object },
+      success: function (response, status, xhr) {
+        return response;
+      },
     });
+    return result;
   } catch (error) {
     console.log(error);
   }
 }
 
-async function deleteExpense(expense_id) {
+async function addExpense(amount, date, category_id) {
+  await addExpenseAPI(amount, date, category_id).then(async (results) => {
+    let new_expense = JSON.parse(results);
+    let edit_button = `
+    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editexpense${new_expense["id"]}" data-bs-whatever="@mdo">Edit</button>
+    <div class="modal fade" id="editexpense${new_expense["id"]}" tabindex="-1" aria-labelledby="editexpense${new_expense["id"]}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editexpense">Edit Expense</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="mb-3">
+                <label for="expense_category" class="col-form-label">Category:</label>
+                <div class="input-group mb-3">
+                  <select name="edit_expense_category" class="form-select edit_expense_category" id="edit_expense_category_${new_expense["id"]}">
+                  </select>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="expense_amount" class="col-form-label">Amount ($):</label>
+                <input type="text" class="form-control" id="edit_expense_amount_${new_expense["id"]}" name="edit_expense_amount_${new_expense["id"]}" value = "${new_expense["amount"]}"> </div>
+              <div class="mb-3">
+                <label for="expense_date" class="col-form-label">Date:</label>
+                <input type="date" class="form-control" id="edit_expense_date_${new_expense["id"]}" name="edit_expense_date_${new_expense["id"]}" value = "${new_expense["date"]}"> </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-success edit_expense" value = "${new_expense["id"]}" data-bs-dismiss="modal">Edit Expense</button>
+          </div>
+        </div>`;
+
+    let delete_button = `<button class="btn btn-outline-danger delete_expense" value = "${new_expense["id"]}">Delete</button>`;
+
+    let new_row = `<tr id = "expense_${new_expense["id"]}">
+      <td>${new_expense["category"]}</td>
+      <td>$${new_expense["amount"]}</td>
+      <td>${new_expense["date"]}</td>
+      <td> ${edit_button}</td><td>${delete_button}</td>
+      </tr>`;
+
+    $("#expenses_table").append(new_row);
+
+    await getGroupedExpensesAPI().then((results) => {
+      let grouped_expenses = results;
+      buildPieChart(grouped_expenses);
+    });
+  });
+}
+
+async function deleteExpenseAPI(expense_id) {
   try {
     let json_object = JSON.stringify({ expense_id: expense_id });
     result = await $.ajax({
       type: "POST",
       url: "http://localhost/Wael_Kaddoura_ExpensesTracker/php/delete-expense.php",
-      data: { expense: json_object },
+      data: { deleted_expense: json_object },
     });
+
     $("#expense_" + expense_id).remove();
-    await fetchGroupedExpenses().then((results) => {
+
+    await getGroupedExpensesAPI().then((results) => {
       let grouped_expenses = results;
       buildPieChart(grouped_expenses);
     });
@@ -98,13 +155,13 @@ async function deleteExpense(expense_id) {
   }
 }
 
-async function editExpense(expense_id, amount, date, category_id) {
+async function editExpenseAPI(expense_id, amount, date, category_id) {
   try {
     let json_object = JSON.stringify({
-      new_amount: amount,
-      new_date: date,
-      new_category_id: category_id,
       expense_id: expense_id,
+      amount: amount,
+      date: date,
+      category_id: category_id,
     });
 
     result = await $.ajax({
@@ -113,17 +170,17 @@ async function editExpense(expense_id, amount, date, category_id) {
       data: { edited_expense_data: json_object },
     });
 
-    await fetchCurrentExpenses().then(async (results) => {
+    await getExpensesAPI().then(async (results) => {
       let expenses = results;
       await updateExpensesList(expenses);
 
-      await fetchGroupedExpenses().then((results) => {
+      await getGroupedExpensesAPI().then((results) => {
         let grouped_expenses = results;
         buildPieChart(grouped_expenses);
       });
     });
 
-    await fetchCurrentCategories().then((results) => {
+    await getCategoriesAPI().then((results) => {
       let categories = results;
       updateCategoryDropdown(categories);
     });
@@ -170,20 +227,12 @@ function updateExpensesList(expenses) {
 
     let delete_button = `<button class="btn btn-outline-danger delete_expense" value = "${expense}">Delete</button>`;
 
-    let row =
-      "<tr id = 'expense_" +
-      expense +
-      "'><td>" +
-      expenses[expense]["category"] +
-      "</td><td>$" +
-      expenses[expense]["amount"] +
-      "</td><td>" +
-      expenses[expense]["date"] +
-      "</td><td>" +
-      edit_button +
-      "</td><td>" +
-      delete_button +
-      "</td></tr>";
+    let row = `<tr id = "expense_${expense}">
+    <td>${expenses[expense]["category"]}</td>
+    <td>$${expenses[expense]["amount"]}</td>
+    <td>${expenses[expense]["date"]}</td>
+    <td> ${edit_button}</td><td>${delete_button}</td>
+    </tr>`;
 
     $("#expenses_table").append(row);
   }
@@ -191,7 +240,7 @@ function updateExpensesList(expenses) {
   $(".delete_expense").click(function (e) {
     e.preventDefault();
     let expense_id = $(this).val();
-    deleteExpense(expense_id);
+    deleteExpenseAPI(expense_id);
   });
 
   $(".edit_expense").click(function (e) {
@@ -201,7 +250,7 @@ function updateExpensesList(expenses) {
     let new_date = $(`#edit_expense_date_${expense_id}`).val();
     let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
 
-    editExpense(expense_id, new_amount, new_date, new_category_id);
+    editExpenseAPI(expense_id, new_amount, new_date, new_category_id);
   });
 }
 
@@ -254,17 +303,17 @@ async function pageLoad() {
 
       $("#not_loggedin").empty();
 
-      await fetchCurrentExpenses().then(async (results) => {
+      await getExpensesAPI().then(async (results) => {
         let expenses = results;
         await updateExpensesList(expenses);
 
-        await fetchGroupedExpenses().then((results) => {
+        await getGroupedExpensesAPI().then((results) => {
           let grouped_expenses = results;
           buildPieChart(grouped_expenses);
         });
       });
 
-      await fetchCurrentCategories().then((results) => {
+      await getCategoriesAPI().then((results) => {
         let categories = results;
         updateCategoryDropdown(categories);
       });
@@ -284,9 +333,9 @@ $(document).ready(async function () {
 $("#add_category").click(async function (e) {
   e.preventDefault();
   let new_category = $("#new_category").val();
-  await addNewCategory(new_category);
+  await addCategoryAPI(new_category);
 
-  fetchCurrentCategories().then((results) => {
+  getCategoriesAPI().then((results) => {
     let categories = results;
     updateCategoryDropdown(categories);
   });
@@ -296,20 +345,15 @@ $("#add_expense").click(async function (e) {
   e.preventDefault();
   let amount = $("#expense_amount").val();
   let date = $("#expense_date").val();
-  let category = $("#expense_category").val();
-  await addNewExpense(amount, date, category);
+  let category_id = $("#expense_category").val();
+  await addExpense(amount, date, category_id);
 
   $("#expense_amount").val("");
   $("#expense_date").val("");
   $("#expense_category").val("");
 
-  fetchCurrentExpenses().then(async (results) => {
-    let expenses = results;
-    await updateExpensesList(expenses);
-
-    await fetchGroupedExpenses().then((results) => {
-      let grouped_expenses = results;
-      buildPieChart(grouped_expenses);
-    });
+  getCategoriesAPI().then((results) => {
+    let categories = results;
+    updateCategoryDropdown(categories);
   });
 });
