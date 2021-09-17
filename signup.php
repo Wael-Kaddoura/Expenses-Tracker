@@ -72,13 +72,13 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container-fluid">
-          <a class="navbar-brand" href="index.php">Expenses Tracker</a>
+          <a class="navbar-brand" href="index.html">Expenses Tracker</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav">
-              <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+              <a class="nav-link active" aria-current="page" href="index.html">Home</a>
               <?php if ($_SESSION["logedin"]) {
                   echo '<a class="nav-link" href="php/logout.php">Logout</a>';
               }else {
@@ -112,6 +112,7 @@
                 class="input100"
                 type="text"
                 name="first_name"
+                id="first-name"
                 placeholder="First Name"
               />
               <span class="focus-input100"></span>
@@ -124,6 +125,7 @@
                 class="input100"
                 type="text"
                 name="last_name"
+                id="last-name"
                 placeholder="Last Name"
               />
               <span class="focus-input100"></span>
@@ -137,6 +139,7 @@
                 class="input100"
                 type="text"
                 name="email"
+                id="email"
                 placeholder="Email"
               />
               <span class="focus-input100"></span>
@@ -153,6 +156,7 @@
                 class="input100"
                 type="password"
                 name="password"
+                id="password"
                 placeholder="Password"
               />
               <span class="focus-input100"></span>
@@ -169,6 +173,7 @@
                 class="input100"
                 type="password"
                 name="confirmPassword"
+                id="confirm-password"
                 placeholder="Confirm Password"
               />
               <span class="focus-input100"></span>
@@ -176,7 +181,7 @@
 
 
             <div class="container-login100-form-btn">
-              <button type = "submit" class="login100-form-btn">Create Account</button>
+              <button type = "button" class="login100-form-btn" id = "submit-button">Create Account</button>
             </div>
           </form>
         </div>
@@ -199,5 +204,7 @@
     <script src="vendor/countdowntime/countdowntime.js"></script>
     <!--===============================================================================================-->
     <script src="js/main.js"></script>
+
+    <script src="js/signup.js"></script>
   </body>
 </html>

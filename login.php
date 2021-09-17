@@ -80,13 +80,13 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
           <div class="container-fluid">
-              <a class="navbar-brand" href="index.php">Expenses Tracker</a>
+              <a class="navbar-brand" href="index.html">Expenses Tracker</a>
               <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
               </button>
               <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
               <div class="navbar-nav">
-                  <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+                  <a class="nav-link active" aria-current="page" href="index.html">Home</a>
                   <?php if ($_SESSION["logedin"]) {
                       echo '<a class="nav-link" href="php/logout.php">Logout</a>';
                   }else {
@@ -125,10 +125,11 @@
               class="wrap-input100 validate-input m-b-16"
               data-validate="Please enter email: ex@abc.xyz"
             >
-              <input
+              <input required
                 class="input100"
                 type="text"
                 name="email"
+                id = "email"
                 placeholder="Email"
               />
               <span class="focus-input100"></span>
@@ -141,7 +142,7 @@
               <span class="btn-show-pass">
                 <i class="fa fa fa-eye"></i>
               </span>
-              <input
+              <input required
                 class="input100"
                 type="password"
                 name="password"
@@ -151,7 +152,7 @@
             </div>
 
             <div class="container-login100-form-btn">
-              <button type = "submit" class="login100-form-btn">Login</button>
+              <button type = "button" class="login100-form-btn" id = "submit-button">Login</button>
             </div>
 
             <div class="flex-col-c p-t-224">
@@ -188,5 +189,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-eMNCOe7tC1doHpGoWe/6oMVemdAVTMs2xqW4mwXrXsW0L84Iytr2wi5v2QjrP/xp" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script>
 
+    <script src="js/login.js"></script>
   </body>
 </html>
