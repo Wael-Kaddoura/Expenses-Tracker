@@ -1,6 +1,6 @@
 async function fetchCurrentCategories() {
   const response = await fetch(
-    "http://localhost/expensestracker/php/get-categories.php"
+    "http://localhost/Wael_Kaddoura_ExpensesTracker/php/get-categories.php"
   );
   if (!response.ok) {
     const message = "An error has occured";
@@ -15,7 +15,7 @@ async function addNewCategory(category) {
     let json_object = JSON.stringify({ new_category_name: category });
     result = await $.ajax({
       type: "POST",
-      url: "http://localhost/expensestracker/php/add-category.php",
+      url: "http://localhost/Wael_Kaddoura_ExpensesTracker/php/add-category.php",
       data: { new_category: json_object },
     });
   } catch (error) {
@@ -41,7 +41,7 @@ function updateCategoryDropdown(categories) {
 
 async function fetchCurrentExpenses() {
   const response = await fetch(
-    "http://localhost/expensestracker/php/get-expenses.php"
+    "http://localhost/Wael_Kaddoura_ExpensesTracker/php/get-expenses.php"
   );
   if (!response.ok) {
     const message = "An error has occured";
@@ -53,7 +53,7 @@ async function fetchCurrentExpenses() {
 
 async function fetchGroupedExpenses() {
   const response = await fetch(
-    "http://localhost/expensestracker/php/get-expenses-grouped.php"
+    "http://localhost/Wael_Kaddoura_ExpensesTracker/php/get-expenses-grouped.php"
   );
   if (!response.ok) {
     const message = "An error has occured";
@@ -72,7 +72,7 @@ async function addNewExpense(amount, date, category) {
     });
     result = await $.ajax({
       type: "POST",
-      url: "http://localhost/expensestracker/php/add-expense.php",
+      url: "http://localhost/Wael_Kaddoura_ExpensesTracker/php/add-expense.php",
       data: { new_expense_data: json_object },
     });
   } catch (error) {
@@ -85,7 +85,7 @@ async function deleteExpense(expense_id) {
     let json_object = JSON.stringify({ expense_id: expense_id });
     result = await $.ajax({
       type: "POST",
-      url: "http://localhost/expensestracker/php/delete-expense.php",
+      url: "http://localhost/Wael_Kaddoura_ExpensesTracker/php/delete-expense.php",
       data: { expense: json_object },
     });
     $("#expense_" + expense_id).remove();
@@ -109,7 +109,7 @@ async function editExpense(expense_id, amount, date, category_id) {
 
     result = await $.ajax({
       type: "POST",
-      url: "http://localhost/expensestracker/php/edit-expense.php",
+      url: "http://localhost/Wael_Kaddoura_ExpensesTracker/php/edit-expense.php",
       data: { edited_expense_data: json_object },
     });
 
@@ -232,7 +232,7 @@ function buildPieChart(expenses) {
 
 async function fetchPageStats() {
   const response = await fetch(
-    "http://localhost/expensestracker/php/load-page-stats.php"
+    "http://localhost/Wael_Kaddoura_ExpensesTracker/php/load-page-stats.php"
   );
   if (!response.ok) {
     const message = "An error has occured";
