@@ -24,7 +24,7 @@ async function addNewCategory(category) {
 
 function updateCategoryDropdown(categories) {
   $("#expense_category").empty();
-  let choose_option = "<option selected>Choose...</option>";
+  let choose_option = "<option selected value = 0>Choose...</option>";
   $("#expense_category").append(choose_option);
   for (const category in categories) {
     let option =
@@ -50,7 +50,18 @@ async function fetchCurrentExpenses() {
     throw new Error(message);
   }
   const data = await response.json();
-  console.log(data);
+  return data;
+}
+
+async function fetchGroupedExpenses() {
+  const response = await fetch(
+    "http://localhost/expensestracker/php/get-expenses-grouped.php"
+  );
+  if (!response.ok) {
+    const message = "An error has occured";
+    throw new Error(message);
+  }
+  const data = await response.json();
   return data;
 }
 
@@ -74,6 +85,10 @@ async function deleteExpense(expense_id) {
       data: { expense_id: expense_id },
     });
     $("#expense_" + expense_id).remove();
+    await fetchGroupedExpenses().then((results) => {
+      let grouped_expenses = results;
+      buildPieChart(grouped_expenses);
+    });
   } catch (error) {
     console.log(error);
   }
@@ -92,10 +107,14 @@ async function editExpense(expense_id, amount, date, category_id) {
       },
     });
 
-    await fetchCurrentExpenses().then((results) => {
+    await fetchCurrentExpenses().then(async (results) => {
       let expenses = results;
-      updateExpensesList(expenses);
-      buildPieChart(expenses);
+      await updateExpensesList(expenses);
+
+      await fetchGroupedExpenses().then((results) => {
+        let grouped_expenses = results;
+        buildPieChart(grouped_expenses);
+      });
 
       $(".delete_expense").click(function (e) {
         e.preventDefault();
@@ -194,8 +213,8 @@ function buildPieChart(expenses) {
 
   for (const expense in expenses) {
     let category = expenses[expense]["category"];
-    let amount = expenses[expense]["amount"];
-    data.push({ x: category, value: amount });
+    let sum = expenses[expense]["sum"];
+    data.push({ x: category, value: sum });
   }
 
   // create the chart
@@ -212,33 +231,71 @@ function buildPieChart(expenses) {
   chart.draw();
 }
 
+async function fetchPageStats() {
+  const response = await fetch(
+    "http://localhost/expensestracker/php/load-page-stats.php"
+  );
+  if (!response.ok) {
+    const message = "An error has occured";
+    throw new Error(message);
+  }
+  const data = await response.json();
+  return data;
+}
+
+async function pageLoad() {
+  await fetchPageStats().then(async (results) => {
+    let stats = results;
+    if (stats["is_logedin"]) {
+      let action = `<a class="nav-link" href="php/logout.php">Logout</a>`;
+      $("#user_action").append(action);
+
+      let username = stats["username"];
+      $("#username").text(username);
+
+      $("#not_loggedin").empty();
+
+      await fetchCurrentExpenses().then(async (results) => {
+        let expenses = results;
+        await updateExpensesList(expenses);
+
+        await fetchGroupedExpenses().then((results) => {
+          let grouped_expenses = results;
+          buildPieChart(grouped_expenses);
+        });
+
+        $(".delete_expense").click(function (e) {
+          e.preventDefault();
+          let expense_id = $(this).val();
+          deleteExpense(expense_id);
+        });
+
+        $(".edit_expense").click(function (e) {
+          e.preventDefault();
+          let expense_id = $(this).val();
+          let new_amount = $(`#edit_expense_amount_${expense_id}`).val();
+          let new_date = $(`#edit_expense_date_${expense_id}`).val();
+          let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
+
+          editExpense(expense_id, new_amount, new_date, new_category_id);
+        });
+      });
+
+      await fetchCurrentCategories().then((results) => {
+        let categories = results;
+        updateCategoryDropdown(categories);
+      });
+    } else {
+      let action = `<a class="nav-link" href="login.php">Login</a>`;
+      $("#user_action").append(action);
+
+      $("#loggedin").empty();
+    }
+  });
+}
+
 $(document).ready(async function () {
-  await fetchCurrentExpenses().then((results) => {
-    let expenses = results;
-    updateExpensesList(expenses);
-    buildPieChart(expenses);
-
-    $(".delete_expense").click(function (e) {
-      e.preventDefault();
-      let expense_id = $(this).val();
-      deleteExpense(expense_id);
-    });
-
-    $(".edit_expense").click(function (e) {
-      e.preventDefault();
-      let expense_id = $(this).val();
-      let new_amount = $(`#edit_expense_amount_${expense_id}`).val();
-      let new_date = $(`#edit_expense_date_${expense_id}`).val();
-      let new_category_id = $(`#edit_expense_category_${expense_id}`).val();
-
-      editExpense(expense_id, new_amount, new_date, new_category_id);
-    });
-  });
-
-  await fetchCurrentCategories().then((results) => {
-    let categories = results;
-    updateCategoryDropdown(categories);
-  });
+  pageLoad();
 });
 
 $("#add_category").click(async function (e) {
@@ -263,9 +320,13 @@ $("#add_expense").click(async function (e) {
   $("#expense_date").val("");
   $("#expense_category").val("");
 
-  fetchCurrentExpenses().then((results) => {
+  fetchCurrentExpenses().then(async (results) => {
     let expenses = results;
-    updateExpensesList(expenses);
-    buildPieChart(expenses);
+    await updateExpensesList(expenses);
+
+    await fetchGroupedExpenses().then((results) => {
+      let grouped_expenses = results;
+      buildPieChart(grouped_expenses);
+    });
   });
 });

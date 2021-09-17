@@ -41,6 +41,6 @@ if(empty($row) ){
 	
 	
 	//redirecting to the home page
-	header('location: ../index.php');
+	header('location: ../index.html');
 }
 ?>

@@ -7,5 +7,5 @@ $_SESSION["logedin"] = false;
 session_destroy();
 
 //redirecting to the home page
-header("Location:../index.php")
+header("Location:../index.html")
 ?>
