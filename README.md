@@ -1,6 +1,6 @@
 # Expenses-Tracker
 
-A browser application that allows users to register and login to do the following:
+A web application that allows users to register and login to do the following:
 
   - Add/Edit expenses (also delete)
     - With a date
